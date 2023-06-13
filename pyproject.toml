@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "my-notes"
+version = "0.1.0"
+description = ""
+authors = ["Mas5ive <empty>"]
+readme = "README.md"
+packages = [{include = "my_notes"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+prompt-toolkit = "^3.0.38"
+
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.0.0"
+autopep8 = "^2.0.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
