@@ -2,7 +2,9 @@ from data.user import UserData
 from prompt_toolkit.application import Application
 from prompt_toolkit.layout import Layout
 from prompt_toolkit.key_binding.key_bindings import KeyBindings
-from prompt_toolkit.widgets import Frame
+from prompt_toolkit.widgets import (
+    TextArea,
+)
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.containers import (
     HorizontalAlign,
@@ -91,7 +93,67 @@ def view(data: UserData, note_num: int) -> Application:
 
 
 def editor(data: UserData, note_num: int) -> Application:
-    pass
+    text_area = TextArea(
+        text=data.notes[data.history[note_num]],
+        multiline=True,
+        focus_on_click=True
+    )
+
+    body = HSplit(
+        [
+            Window(
+                FormattedTextControl(f'#{note_num} ' + data.history[note_num]),
+                height=2,
+                align=WindowAlign.CENTER,
+                # style="bg:#88ff88 #000000",
+            ),
+            text_area,
+            VSplit(
+                [
+                    Window(
+                        FormattedTextControl('Enter Ctrl+S to save'),
+                        height=2,
+                        align=WindowAlign.LEFT,
+                        # style=
+                    ),
+                    Window(
+                        FormattedTextControl('Enter ESC to cancel'),
+                        height=2,
+                        align=WindowAlign.RIGHT,
+                        # style=
+                    )
+                ]
+            )
+        ]
+    )
+
+    kb = KeyBindings()
+
+    @ kb.add("c-s")
+    def exit_with_save(event):
+        data.notes[data.history[note_num]] = text_area.text
+        event.app.exit(result=(view, note_num))
+
+    @ kb.add("escape")
+    def exit_with_cancel(event):
+        event.app.exit(result=(view, note_num))
+
+    @kb.add("c-c", eager=True)
+    def copy_selection_text(event):
+        selection = event.current_buffer.copy_selection()
+        event.app.clipboard.set_data(selection)
+
+    @kb.add("c-v", eager=True)
+    def paste_buffer_text(event):
+        buffer = event.app.clipboard.get_data()
+        event.current_buffer.paste_clipboard_data(buffer)
+
+    return Application(
+        layout=Layout(body),
+        key_bindings=kb,
+        full_screen=True,
+        mouse_support=True
+    )
 
 
 def deleter(data: UserData, note_num: int) -> Application:
@@ -115,6 +177,7 @@ if __name__ == '__main__':
         'third': 'eeee eee eeeeeee ee e eeeeee eeeee eeeeeeeeeeee eee eee e ee eeeeee eee ee'
     }
 
-    res_func, res_num = view(test_data, 0).run()
-    while res_func == view:
+    res_func, res_num = editor(test_data, 0).run()
+    while res_func == editor:
         res_func, res_num = res_func(test_data, res_num).run()
+    print(test_data.notes['first'])
