@@ -1,10 +1,16 @@
 from data.user import UserData
+from typing import Callable
 from prompt_toolkit.application import Application
-from prompt_toolkit.layout import Layout
+from prompt_toolkit.application.current import get_app
 from prompt_toolkit.key_binding.key_bindings import KeyBindings
 from prompt_toolkit.widgets import (
     TextArea,
+    Button,
+    Dialog,
+    Label,
 )
+from prompt_toolkit.layout import Layout
+from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.containers import (
     HorizontalAlign,
@@ -14,6 +20,10 @@ from prompt_toolkit.layout.containers import (
     Window,
     WindowAlign,
 )
+
+
+def gallary(data: UserData, *args) -> Application:
+    pass
 
 
 def view(data: UserData, note_num: int) -> Application:
@@ -156,28 +166,64 @@ def editor(data: UserData, note_num: int) -> Application:
     )
 
 
-def deleter(data: UserData, note_num: int) -> Application:
-    pass
+def deleter(data: UserData, note_num: int, calling_sub_app: Callable) -> Application:
+
+    def ok_handler() -> None:
+        deleted_note = data.history.pop(note_num)
+        data.notes.pop(deleted_note)
+        if not data.history:
+            result = (gallary, None)
+        else:
+            result = (calling_sub_app, note_num if note_num == 0 else note_num-1)
+        get_app().exit(result=result)
+
+    def cancel_handler() -> None:
+        get_app().exit(result=(calling_sub_app, note_num))
+
+    ok_button = Button(text='OK', handler=ok_handler)
+    cancel_button = Button(text='Cancel', handler=cancel_handler)
+
+    dialog = Dialog(
+        title=f'#{note_num} ' + data.history[note_num],
+        body=HSplit(
+            [
+                Label(
+                    text='Do you really want to delete this note?',
+                    # dont_extend_height=True,
+                    align=WindowAlign.CENTER
+                ),
+            ],
+            padding=Dimension(preferred=1, max=1),
+        ),
+        buttons=[cancel_button, ok_button],
+        with_background=True,
+    )
+
+    return Application(
+        layout=Layout(dialog),
+        full_screen=True,
+        mouse_support=True
+    )
 
 
 def factory(data: UserData, note_num: int) -> Application:
     pass
 
 
-def gallary(data: UserData, *args) -> Application:
-    pass
-
-
 if __name__ == '__main__':
     test_data = UserData()
-    test_data.history = ['first', 'second', 'third']
+    test_data.history = [
+        'first',
+        'second',
+        'third'
+    ]
     test_data.notes = {
         'first': 'qqqqqqqqqqqqqqq qqqqqqqqqqqq qqqqqqqqq q qqqqqqqqqqq qqqqqqq qqqq qqqqqqqq',
         'second': 'wwwwwwww w wwwww www wwwwwww wwwww wwwww wwwwww wwwww wwwwwwww ww www w w',
         'third': 'eeee eee eeeeeee ee e eeeeee eeeee eeeeeeeeeeee eee eee e ee eeeeee eee ee'
     }
 
-    res_func, res_num = editor(test_data, 0).run()
-    while res_func == editor:
-        res_func, res_num = res_func(test_data, res_num).run()
-    print(test_data.notes['first'])
+    res_func = deleter(test_data, 0, gallary).run()
+    print(test_data.history)
+    print(test_data.notes)
+    print(res_func)
