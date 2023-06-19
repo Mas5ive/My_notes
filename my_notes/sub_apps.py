@@ -1,13 +1,17 @@
+from prompt_toolkit.document import Document
 from data.user import UserData
 from typing import Callable
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.key_binding.key_bindings import KeyBindings
+from prompt_toolkit.validation import Validator, ValidationError
+from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.widgets import (
     TextArea,
     Button,
     Dialog,
     Label,
+    ValidationToolbar,
 )
 from prompt_toolkit.layout import Layout
 from prompt_toolkit.layout.dimension import Dimension
@@ -206,8 +210,80 @@ def deleter(data: UserData, note_num: int, calling_sub_app: Callable) -> Applica
     )
 
 
-def factory(data: UserData, note_num: int) -> Application:
-    pass
+def factory(data: UserData, note_num: int, calling_sub_app: Callable) -> Application:
+
+    class FactoryValidator(Validator):
+        def validate(self, document: Document) -> None:
+            text = document.text
+
+            conditions = {
+                'The title of the note must be unique!': lambda: text in data.notes,
+                'The title of the note cannot be empty!': lambda: len(text) == 0,
+                f'The title of the note should be more succinct (up to 62 characters, now {len(text)})':
+                    lambda: 62 < len(text)
+            }
+            for massage, condition in conditions.items():
+                if condition():
+                    raise ValidationError(message=massage, cursor_position=len(text))
+
+    def accept_handler(buffer: Buffer) -> None:
+        note_title = buffer.text
+
+        if calling_sub_app == gallary:
+            data.history.append(note_title)
+            data.notes[note_title] = ''
+            result = (editor, note_num)
+        else:
+            text_note = data.notes.pop(data.history[note_num])
+            data.notes[note_title] = text_note
+            data.history[note_num] = note_title
+            result = (calling_sub_app, note_num)
+        get_app().exit(result=result)
+
+    def cancel_handler() -> None:
+        get_app().exit(result=(calling_sub_app, note_num))
+
+    cancel_button = Button(text='Cancel', handler=cancel_handler)
+
+    text_area = TextArea(
+        text='' if calling_sub_app == gallary else data.history[note_num],
+        multiline=False,
+        focus_on_click=True,
+        validator=FactoryValidator(),
+        accept_handler=accept_handler
+    )
+
+    dialog = Dialog(
+        title='Enter a note title',
+        body=HSplit(
+            [
+                text_area,
+                ValidationToolbar(),
+            ],
+            padding=Dimension(preferred=1, max=1),
+        ),
+        buttons=[cancel_button],
+        with_background=True,
+    )
+
+    kb = KeyBindings()
+
+    @kb.add("c-c", eager=True)
+    def copy_selection_text(event):
+        selection = event.current_buffer.copy_selection()
+        event.app.clipboard.set_data(selection)
+
+    @kb.add("c-v", eager=True)
+    def paste_buffer_text(event):
+        buffer = event.app.clipboard.get_data()
+        event.current_buffer.paste_clipboard_data(buffer)
+
+    return Application(
+        layout=Layout(dialog),
+        key_bindings=kb,
+        full_screen=True,
+        mouse_support=True
+    )
 
 
 if __name__ == '__main__':
@@ -223,7 +299,7 @@ if __name__ == '__main__':
         'third': 'eeee eee eeeeeee ee e eeeeee eeeee eeeeeeeeeeee eee eee e ee eeeeee eee ee'
     }
 
-    res_func = deleter(test_data, 0, gallary).run()
+    res_func = factory(test_data, 0, view).run()
     print(test_data.history)
     print(test_data.notes)
     print(res_func)
