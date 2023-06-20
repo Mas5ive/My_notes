@@ -12,6 +12,7 @@ from prompt_toolkit.widgets import (
     Dialog,
     Label,
     ValidationToolbar,
+    RadioList,
 )
 from prompt_toolkit.layout import Layout
 from prompt_toolkit.layout.dimension import Dimension
@@ -27,7 +28,93 @@ from prompt_toolkit.layout.containers import (
 
 
 def gallary(data: UserData, *args) -> Application:
-    pass
+
+    kb = KeyBindings()
+
+    if not data.history:
+        body = HSplit(
+            [
+                Window(
+                    FormattedTextControl('Your gallery is empty\nIt`s time to fill it up!'),
+                    height=2,
+                    align=WindowAlign.CENTER,
+                    # style=
+                ),
+                Window(
+                    FormattedTextControl('Create | Exit'),
+                    height=2,
+                    align=WindowAlign.CENTER,
+                    # style=
+                ),
+            ],
+            padding_char='-', padding=1,
+        )
+    else:
+        body = HSplit(
+            [
+                VSplit(
+                    [
+                        note_list := RadioList([(idx, note) for idx, note in enumerate(data.history)]),
+                        Window(
+                            FormattedTextControl('Use the keys to move:\nUp, Down, Page Up/Down'),
+                            height=2,
+                            align=WindowAlign.CENTER,
+                            # style=
+                        ),
+                    ]
+                ),
+                VSplit(
+                    [
+                        Window(
+                            FormattedTextControl('Enter or click to select'),
+                            height=2,
+                            align=WindowAlign.LEFT,
+                            # style=
+                        ),
+                        Window(
+                            FormattedTextControl('View | Delete'),
+                            height=2,
+                            align=WindowAlign.CENTER,
+                            # style=
+                        ),
+                        Window(
+                            FormattedTextControl('Create | Exit'),
+                            height=2,
+                            align=WindowAlign.RIGHT,
+                            # style=
+                        )
+                    ]
+                )
+            ],
+            padding_char='-', padding=1,
+        )
+
+        @ kb.add("v")
+        def call_view(event) -> None:
+            event.app.exit(result=(view, note_list.current_value))
+
+        @ kb.add("d")
+        def call_deleter(event) -> None:
+            event.app.exit(result=(deleter, note_list.current_value))
+
+    @ kb.add("c")
+    def call_factory(event) -> None:
+        event.app.exit(result=(factory, len(data.history)))
+
+    @ kb.add("e")
+    def exit(event) -> None:
+        event.app.exit(result=(None, 0))
+
+    return Application(
+        layout=Layout(Dialog(
+            title='NOTES',
+            body=body,
+            with_background=True,
+        )),
+        full_screen=True,
+        mouse_support=True,
+        key_bindings=kb,
+    )
 
 
 def view(data: UserData, note_num: int) -> Application:
@@ -287,19 +374,21 @@ def factory(data: UserData, note_num: int, calling_sub_app: Callable) -> Applica
 
 
 if __name__ == '__main__':
-    test_data = UserData()
-    test_data.history = [
+    test_data1 = UserData()
+    test_data1.history = [
         'first',
         'second',
         'third'
     ]
-    test_data.notes = {
+    test_data1.notes = {
         'first': 'qqqqqqqqqqqqqqq qqqqqqqqqqqq qqqqqqqqq q qqqqqqqqqqq qqqqqqq qqqq qqqqqqqq',
         'second': 'wwwwwwww w wwwww www wwwwwww wwwww wwwww wwwwww wwwww wwwwwwww ww www w w',
         'third': 'eeee eee eeeeeee ee e eeeeee eeeee eeeeeeeeeeee eee eee e ee eeeeee eee ee'
     }
+    test_data2 = UserData()
+    test_data2.history = []
 
-    res_func = factory(test_data, 0, view).run()
-    print(test_data.history)
-    print(test_data.notes)
+    res_func = gallary(test_data1, 0, view).run()
+    print(test_data1.history)
+    # print(test_data1.notes)
     print(res_func)
