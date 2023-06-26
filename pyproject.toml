@@ -15,6 +15,15 @@ prompt-toolkit = "^3.0.38"
 flake8 = "^6.0.0"
 autopep8 = "^2.0.2"
 
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+
+
+[tool.pytest.ini_options]
+pythonpath = ["my_notes"]
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
