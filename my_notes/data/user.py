@@ -9,9 +9,8 @@ class UserData:
     def __init__(self):
         self.history: List[str] = []
         self.notes: Dict[str, str] = {}
-        self._load_data()
 
-    def _load_data(self):
+    def load_data(self):
         try:
             with open(FILENAME, 'rb') as file:
                 self.history = pickle.load(file)
