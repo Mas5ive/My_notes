@@ -1,3 +1,7 @@
+"""
+    Factory functions that create Application instances (from the prompt-toolkit library) with unique features.
+    They represent application windows containing certain functionality.
+"""
 from prompt_toolkit.document import Document
 from data.user import UserData
 from typing import Callable
@@ -18,9 +22,7 @@ from prompt_toolkit.layout import Layout
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.containers import (
-    HorizontalAlign,
     HSplit,
-    VerticalAlign,
     VSplit,
     Window,
     WindowAlign,
@@ -28,7 +30,20 @@ from prompt_toolkit.layout.containers import (
 
 
 def gallary(data: UserData, *args) -> Application:
+    """
+    The function sets up a gallery user interface for the app.
+    If the user history is empty, a message is displayed with options to create a note or exit.
+    If the history is not empty, a list of notes is displayed with options to view, delete, create or exit.
 
+    Key bindings are set for different actions such as view, delete, create and exit.
+
+    Arguments:
+        data: an instance of the UserData class containing user data.
+        *args: arguments that are not handled in any way
+
+    Returns:
+        Application: an instance of the Application class with unique Gallery sub-app settings.
+    """
     kb = KeyBindings()
 
     if not data.history:
@@ -117,7 +132,22 @@ def gallary(data: UserData, *args) -> Application:
     )
 
 
-def view(data: UserData, note_num: int) -> Application:
+def view(data: UserData, note_num: int, *args) -> Application:
+    """
+    The function sets up an user interface for viewing a specific note.
+    It displays the note's title and content along with options to edit, navigate to previous or next notes,
+    go back to the Gallery, or delete the note.
+
+    Key bindings are set up for different actions, such as navigating, editing, creating, and deleting.
+
+    Arguments:
+        data: an instance of the UserData class containing user data.
+        note_num: the index of the note to view.
+        *args: arguments that are not handled in any way.
+
+    Returns:
+        Application: an instance of the Application class with unique View sub-app settings.
+    """
     body = HSplit(
         [
             Window(
@@ -163,27 +193,27 @@ def view(data: UserData, note_num: int) -> Application:
     kb = KeyBindings()
 
     @ kb.add("left")
-    def view_prev_note(event):
+    def view_prev_note(event) -> None:
         event.app.exit(result=(view, prev_note_num))
 
     @ kb.add("right")
-    def view_next_note(event):
+    def view_next_note(event) -> None:
         event.app.exit(result=(view, next_note_num))
 
     @ kb.add("b")
-    def call_gallery(event):
+    def call_gallery(event) -> None:
         event.app.exit(result=(gallary, None))
 
     @ kb.add("x")
-    def call_editor(event):
+    def call_editor(event) -> None:
         event.app.exit(result=(editor, note_num))
 
     @ kb.add("l")
-    def call_factory(event):
+    def call_factory(event) -> None:
         event.app.exit(result=(factory, note_num))
 
     @ kb.add("d")
-    def call_deleter(event):
+    def call_deleter(event) -> None:
         event.app.exit(result=(deleter, note_num))
 
     return Application(
@@ -193,7 +223,22 @@ def view(data: UserData, note_num: int) -> Application:
     )
 
 
-def editor(data: UserData, note_num: int) -> Application:
+def editor(data: UserData, note_num: int, *args) -> Application:
+    """
+    The function sets up an user interface for editing a specific note.
+    It displays the note's title and provides a text area for editing the note's content.
+    Options to save the changes and exit or cancel the editing process are included.
+
+    Key bindings are set up for different actions, such as saving, canceling, copying, and pasting.
+
+    Arguments:
+        data: an instance of the UserData class containing user data.
+        note_num: the index of the note to view.
+        *args: arguments that are not handled in any way.
+
+    Returns:
+        Application: an instance of the Application class with unique Editor sub-app settings.
+    """
     text_area = TextArea(
         text=data.notes[data.history[note_num]],
         multiline=True,
@@ -231,21 +276,21 @@ def editor(data: UserData, note_num: int) -> Application:
     kb = KeyBindings()
 
     @ kb.add("c-s")
-    def exit_with_save(event):
+    def exit_with_save(event) -> None:
         data.notes[data.history[note_num]] = text_area.text
         event.app.exit(result=(view, note_num))
 
     @ kb.add("escape")
-    def exit_with_cancel(event):
+    def exit_with_cancel(event) -> None:
         event.app.exit(result=(view, note_num))
 
     @kb.add("c-c", eager=True)
-    def copy_selection_text(event):
+    def copy_selection_text(event) -> None:
         selection = event.current_buffer.copy_selection()
         event.app.clipboard.set_data(selection)
 
     @kb.add("c-v", eager=True)
-    def paste_buffer_text(event):
+    def paste_buffer_text(event) -> None:
         buffer = event.app.clipboard.get_data()
         event.current_buffer.paste_clipboard_data(buffer)
 
@@ -257,7 +302,23 @@ def editor(data: UserData, note_num: int) -> Application:
     )
 
 
-def deleter(data: UserData, note_num: int, calling_sub_app: Callable) -> Application:
+def deleter(data: UserData, note_num: int, calling_sub_app: Callable[..., Application]) -> Application:
+    """
+    The function sets up an user interface for confirming the deletion of a specific note.
+    It displays a dialog with the note's title and a message asking the user to confirm the deletion.
+    Two buttons, "OK" and "Cancel," are provided to handle the user's choice.
+
+    The function defines handlers for the button actions, including removing the note from the data,
+    and exiting the app.
+
+    Arguments:
+        data: an instance of the UserData class containing user data.
+        note_num: the index of the note to delete.
+        calling_sub_app: the previous sub-app that initiated the call.
+
+    Returns:
+        Application: an instance of the Application class with unique Deleter sub-app settings.
+    """
 
     def ok_handler() -> None:
         deleted_note = data.history.pop(note_num)
@@ -297,7 +358,22 @@ def deleter(data: UserData, note_num: int, calling_sub_app: Callable) -> Applica
     )
 
 
-def factory(data: UserData, note_num: int, calling_sub_app: Callable) -> Application:
+def factory(data: UserData, note_num: int, calling_sub_app: Callable[..., Application]) -> Application:
+    """
+    The function sets up an user interface for creating or editing a note title (if one already exists).
+    It displays a dialog box with an input field for the title of the note.
+
+    The function defines a custom validator, an accept handler and a cancel handler.
+    Key bindings are set for copying and pasting text.
+
+    Arguments:
+        data: an instance of the UserData class containing user data.
+        note_num: the index of the note to delete.
+        calling_sub_app: the previous sub-app that initiated the call.
+
+    Returns:
+        Application: an instance of the Application class with unique Factory sub-app settings.
+    """
 
     class FactoryValidator(Validator):
         def validate(self, document: Document) -> None:
@@ -356,12 +432,12 @@ def factory(data: UserData, note_num: int, calling_sub_app: Callable) -> Applica
     kb = KeyBindings()
 
     @kb.add("c-c", eager=True)
-    def copy_selection_text(event):
+    def copy_selection_text(event) -> None:
         selection = event.current_buffer.copy_selection()
         event.app.clipboard.set_data(selection)
 
     @kb.add("c-v", eager=True)
-    def paste_buffer_text(event):
+    def paste_buffer_text(event) -> None:
         buffer = event.app.clipboard.get_data()
         event.current_buffer.paste_clipboard_data(buffer)
 
@@ -371,24 +447,3 @@ def factory(data: UserData, note_num: int, calling_sub_app: Callable) -> Applica
         full_screen=True,
         mouse_support=True
     )
-
-
-if __name__ == '__main__':
-    test_data1 = UserData()
-    test_data1.history = [
-        'first',
-        'second',
-        'third'
-    ]
-    test_data1.notes = {
-        'first': 'qqqqqqqqqqqqqqq qqqqqqqqqqqq qqqqqqqqq q qqqqqqqqqqq qqqqqqq qqqq qqqqqqqq',
-        'second': 'wwwwwwww w wwwww www wwwwwww wwwww wwwww wwwwww wwwww wwwwwwww ww www w w',
-        'third': 'eeee eee eeeeeee ee e eeeeee eeeee eeeeeeeeeeee eee eee e ee eeeeee eee ee'
-    }
-    test_data2 = UserData()
-    test_data2.history = []
-
-    res_func = gallary(test_data1, 0, view).run()
-    print(test_data1.history)
-    # print(test_data1.notes)
-    print(res_func)
