@@ -133,7 +133,7 @@ class TestView:
         ff = view
         # iterating in a circle (start:1 -> end:1)
         for iteration, _ in enumerate(user_data.history, 1):
-            mock_input.send_bytes(b'\x1b[D')  # Left
+            mock_input.send_text('p')         # Left
             app = ff(user_data, note_num)
             ff, note_num = app.run()
         assert (ff, note_num) == (view, 1)
@@ -143,7 +143,7 @@ class TestView:
         ff = view
         # iterating in a circle (start:1 -> end:1)
         for iteration, _ in enumerate(user_data.history, 1):
-            mock_input.send_bytes(b'\x1b[C')  # RIGHT
+            mock_input.send_text('n')         # RIGHT
             app = ff(user_data, note_num)
             ff, note_num = app.run()
         assert (ff, note_num) == (view, 1)
