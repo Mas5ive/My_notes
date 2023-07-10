@@ -6,8 +6,9 @@ from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
+from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.key_binding.key_bindings import KeyBindings
-from prompt_toolkit.layout import Layout
+from prompt_toolkit.layout import Layout, Dimension
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.containers import (
     HSplit,
@@ -15,11 +16,12 @@ from prompt_toolkit.layout.containers import (
     Window,
     WindowAlign,
 )
-from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.styles import Style
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.widgets import (
     Button,
     Dialog,
+    Frame,
     Label,
     RadioList,
     TextArea,
@@ -44,6 +46,7 @@ def gallery(data: UserData, *args) -> Application:
     Returns:
         Application: an instance of the Application class with unique Gallery sub-app settings.
     """
+
     kb = KeyBindings()
 
     if not data.history:
@@ -53,16 +56,15 @@ def gallery(data: UserData, *args) -> Application:
                     FormattedTextControl('Your gallery is empty\nIt`s time to fill it up!'),
                     height=2,
                     align=WindowAlign.CENTER,
-                    # style=
                 ),
                 Window(
-                    FormattedTextControl('Create | Exit'),
+                    FormattedTextControl(HTML('<b><u>C</u></b>reate | <b><u>E</u></b>xit')),
                     height=2,
                     align=WindowAlign.CENTER,
-                    # style=
                 ),
             ],
-            padding_char='-', padding=1,
+            padding_char='-',
+            padding=1,
         )
     else:
         body = HSplit(
@@ -71,32 +73,30 @@ def gallery(data: UserData, *args) -> Application:
                     [
                         note_list := RadioList([(idx, note) for idx, note in enumerate(data.history)]),
                         Window(
-                            FormattedTextControl('Use the keys to move:\nUp, Down, Page Up/Down'),
+                            FormattedTextControl(HTML(
+                                '<DarkGray> Use the keys to move:</DarkGray>\n'
+                                'Up, Down, Page Up/Down')),
                             height=2,
                             align=WindowAlign.CENTER,
-                            # style=
                         ),
                     ]
                 ),
                 VSplit(
                     [
                         Window(
-                            FormattedTextControl('Enter or click to select'),
+                            FormattedTextControl(HTML('<b>Enter</b> or <b>click</b> to select')),
                             height=2,
                             align=WindowAlign.LEFT,
-                            # style=
                         ),
                         Window(
-                            FormattedTextControl('View | Delete'),
+                            FormattedTextControl(HTML('<b><u>V</u></b>iew | <b><u>D</u></b>elete')),
                             height=2,
                             align=WindowAlign.CENTER,
-                            # style=
                         ),
                         Window(
-                            FormattedTextControl('Create | Exit'),
+                            FormattedTextControl(HTML('<b><u>C</u></b>reate | <b><u>E</u></b>xit')),
                             height=2,
                             align=WindowAlign.RIGHT,
-                            # style=
                         )
                     ]
                 )
@@ -120,15 +120,18 @@ def gallery(data: UserData, *args) -> Application:
     def exit(event) -> None:
         event.app.exit(result=(None, 0))
 
+    custom_style = Style.from_dict({
+        'dialog': 'bg:#DEB887',
+        'dialog.body': 'bg:#FFDEAD #562800',
+        'dialog frame.label': 'fg:#FFDEAD bg:#562800',
+    })
+
     return Application(
-        layout=Layout(Dialog(
-            title='NOTES',
-            body=body,
-            with_background=True,
-        )),
+        layout=Layout(Dialog(title='NOTES', body=body, with_background=True)),
         full_screen=True,
         mouse_support=True,
         key_bindings=kb,
+        style=custom_style
     )
 
 
@@ -148,39 +151,61 @@ def view(data: UserData, note_num: int, *args) -> Application:
     Returns:
         Application: an instance of the Application class with unique View sub-app settings.
     """
+
     body = HSplit(
         [
-            Window(
-                FormattedTextControl(f'#{note_num} ' + data.history[note_num]),
-                height=2,
-                align=WindowAlign.CENTER,
-                # style="bg:#88ff88 #000000",
+            Frame(
+                Window(
+                    FormattedTextControl(f'#{note_num+1} ' + data.history[note_num]),
+                    height=1,
+                    align=WindowAlign.CENTER,
+                ),
+                style='class:window bold',
             ),
-            Window(
-                FormattedTextControl(data.notes[data.history[note_num]]),
-                height=2,
-                align=WindowAlign.CENTER,
-                # style="bg:#88ff88 #000000",
+            VSplit(
+                [
+                    TextArea(
+                        text=data.notes[data.history[note_num]],
+                        focus_on_click=True,
+                        read_only=True,
+                        wrap_lines=False,
+                        width=Dimension(min=55),
+                        height=Dimension(min=5),
+                    )
+                ],
+                style='class:textarea'
             ),
             VSplit(
                 [
                     Window(
-                        FormattedTextControl('Edit teXt / titLe'),
+                        FormattedTextControl(
+                            HTML('  Edit te<b><u>X</u></b>t / tit<b><u>L</u></b>e')
+                        ),
+                        width=Dimension(min=20),
+                        ignore_content_width=True,
                         height=2,
                         align=WindowAlign.LEFT,
-                        # style=
+                        style='class:window'
                     ),
                     Window(
-                        FormattedTextControl('<- previous  next ->'.ljust(25, ' ')),
+                        FormattedTextControl(
+                            HTML('<b><u>P</u></b>revious | <b><u>N</u></b>ext     ')
+                        ),
+                        width=Dimension(min=20),
+                        ignore_content_width=True,
                         height=2,
                         align=WindowAlign.CENTER,
-                        # style=
+                        style='class:window'
                     ),
                     Window(
-                        FormattedTextControl('Back  Delete'),
+                        FormattedTextControl(
+                            HTML('<b><u>B</u></b>ack  <b><u>D</u></b>elete  ')
+                        ),
+                        width=Dimension(min=15),
+                        ignore_content_width=True,
                         height=2,
                         align=WindowAlign.RIGHT,
-                        # style=
+                        style='class:window'
                     )
                 ]
             )
@@ -192,11 +217,11 @@ def view(data: UserData, note_num: int, *args) -> Application:
 
     kb = KeyBindings()
 
-    @ kb.add("left")
+    @ kb.add("p")
     def view_prev_note(event) -> None:
         event.app.exit(result=(view, prev_note_num))
 
-    @ kb.add("right")
+    @ kb.add("n")
     def view_next_note(event) -> None:
         event.app.exit(result=(view, next_note_num))
 
@@ -216,10 +241,17 @@ def view(data: UserData, note_num: int, *args) -> Application:
     def call_deleter(event) -> None:
         event.app.exit(result=(deleter, note_num))
 
+    custom_style = Style.from_dict({
+        'window': 'bg:#FFDEAD #562800',
+        'textarea': 'bg:#DEB887 #562800'
+    })
+
     return Application(
         layout=Layout(body),
         full_screen=True,
-        key_bindings=kb
+        mouse_support=True,
+        key_bindings=kb,
+        style=custom_style
     )
 
 
@@ -239,34 +271,49 @@ def editor(data: UserData, note_num: int, *args) -> Application:
     Returns:
         Application: an instance of the Application class with unique Editor sub-app settings.
     """
-    text_area = TextArea(
-        text=data.notes[data.history[note_num]],
-        multiline=True,
-        focus_on_click=True
-    )
 
     body = HSplit(
         [
-            Window(
-                FormattedTextControl(f'#{note_num} ' + data.history[note_num]),
-                height=2,
-                align=WindowAlign.CENTER,
-                # style="bg:#88ff88 #000000",
+            Frame(
+                Window(
+                    FormattedTextControl(f'#{note_num+1} ' + data.history[note_num]),
+                    height=1,
+                    align=WindowAlign.CENTER,
+                ),
+                style="class:window bold",
             ),
-            text_area,
+            VSplit(
+                [
+                    text_area := TextArea(
+                        text=data.notes[data.history[note_num]],
+                        multiline=True,
+                        wrap_lines=False,
+                        focus_on_click=True,
+                        width=Dimension(min=55),
+                        height=Dimension(min=5),
+                        style='class:textarea'
+                    )
+                ]
+            ),
             VSplit(
                 [
                     Window(
-                        FormattedTextControl('Enter Ctrl+S to save'),
+                        FormattedTextControl(
+                            HTML('  Enter <b>Ctrl+S</b> to save')
+                        ),
                         height=2,
+                        width=Dimension(min=28),
                         align=WindowAlign.LEFT,
-                        # style=
+                        style='class:window'
                     ),
                     Window(
-                        FormattedTextControl('Enter ESC to cancel'),
+                        FormattedTextControl(
+                            HTML('Enter <b>ESC</b> to cancel  ')
+                        ),
                         height=2,
+                        width=Dimension(min=27),
                         align=WindowAlign.RIGHT,
-                        # style=
+                        style='class:window'
                     )
                 ]
             )
@@ -284,21 +331,27 @@ def editor(data: UserData, note_num: int, *args) -> Application:
     def exit_with_cancel(event) -> None:
         event.app.exit(result=(view, note_num))
 
-    @kb.add("c-c", eager=True)
+    @ kb.add("c-c", eager=True)
     def copy_selection_text(event) -> None:
         selection = event.current_buffer.copy_selection()
         event.app.clipboard.set_data(selection)
 
-    @kb.add("c-v", eager=True)
+    @ kb.add("c-v", eager=True)
     def paste_buffer_text(event) -> None:
         buffer = event.app.clipboard.get_data()
         event.current_buffer.paste_clipboard_data(buffer)
+
+    custom_style = Style.from_dict({
+        'window': 'bg:#A0522D #FFDEAD',
+        'textarea': 'bg:#DEB887 #562800'
+    })
 
     return Application(
         layout=Layout(body),
         key_bindings=kb,
         full_screen=True,
-        mouse_support=True
+        mouse_support=True,
+        style=custom_style
     )
 
 
@@ -336,12 +389,11 @@ def deleter(data: UserData, note_num: int, calling_sub_app: Callable[..., Applic
     cancel_button = Button(text='Cancel', handler=cancel_handler)
 
     dialog = Dialog(
-        title=f'#{note_num} ' + data.history[note_num],
+        title=f'#{note_num+1} ' + data.history[note_num],
         body=HSplit(
             [
                 Label(
                     text='Do you really want to delete this note?',
-                    # dont_extend_height=True,
                     align=WindowAlign.CENTER
                 ),
             ],
@@ -351,10 +403,18 @@ def deleter(data: UserData, note_num: int, calling_sub_app: Callable[..., Applic
         with_background=True,
     )
 
+    custom_style = Style.from_dict({
+        "dialog": "bg:#390606",
+        'dialog shadow': 'bg:#000000',
+        "dialog.body": "bg:#FFDEAD #7d0000",
+        'dialog frame.label': 'fg:#FFDEAD bg:#e70606',
+    })
+
     return Application(
         layout=Layout(dialog),
         full_screen=True,
-        mouse_support=True
+        mouse_support=True,
+        style=custom_style
     )
 
 
@@ -408,19 +468,17 @@ def factory(data: UserData, note_num: int, calling_sub_app: Callable[..., Applic
 
     cancel_button = Button(text='Cancel', handler=cancel_handler)
 
-    text_area = TextArea(
-        text='' if calling_sub_app == gallery else data.history[note_num],
-        multiline=False,
-        focus_on_click=True,
-        validator=FactoryValidator(),
-        accept_handler=accept_handler
-    )
-
     dialog = Dialog(
         title='Enter a note title',
         body=HSplit(
             [
-                text_area,
+                TextArea(
+                    text='' if calling_sub_app == gallery else data.history[note_num],
+                    multiline=False,
+                    focus_on_click=True,
+                    validator=FactoryValidator(),
+                    accept_handler=accept_handler
+                ),
                 ValidationToolbar(),
             ],
             padding=Dimension(preferred=1, max=1),
@@ -431,19 +489,27 @@ def factory(data: UserData, note_num: int, calling_sub_app: Callable[..., Applic
 
     kb = KeyBindings()
 
-    @kb.add("c-c", eager=True)
+    @ kb.add("c-c", eager=True)
     def copy_selection_text(event) -> None:
         selection = event.current_buffer.copy_selection()
         event.app.clipboard.set_data(selection)
 
-    @kb.add("c-v", eager=True)
+    @ kb.add("c-v", eager=True)
     def paste_buffer_text(event) -> None:
         buffer = event.app.clipboard.get_data()
         event.current_buffer.paste_clipboard_data(buffer)
+
+    custom_style = Style.from_dict({
+        'dialog': 'bg:#DEB887',
+        'dialog shadow': 'bg:#000000',
+        'dialog.body': 'bg:#FFDEAD #562800',
+        'dialog frame.label': 'fg:#FFDEAD bg:#562800',
+    })
 
     return Application(
         layout=Layout(dialog),
         key_bindings=kb,
         full_screen=True,
-        mouse_support=True
+        mouse_support=True,
+        style=custom_style
     )
