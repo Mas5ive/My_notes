@@ -2,24 +2,12 @@
     Factory functions that create Application instances (from the prompt-toolkit library) with unique features.
     They represent application windows containing certain functionality.
 """
-from prompt_toolkit.document import Document
-from data.user import UserData
-from typing import Callable
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
-from prompt_toolkit.key_binding.key_bindings import KeyBindings
-from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.widgets import (
-    TextArea,
-    Button,
-    Dialog,
-    Label,
-    ValidationToolbar,
-    RadioList,
-)
+from prompt_toolkit.document import Document
+from prompt_toolkit.key_binding.key_bindings import KeyBindings
 from prompt_toolkit.layout import Layout
-from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.layout.containers import (
     HSplit,
@@ -27,9 +15,21 @@ from prompt_toolkit.layout.containers import (
     Window,
     WindowAlign,
 )
+from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.validation import Validator, ValidationError
+from prompt_toolkit.widgets import (
+    Button,
+    Dialog,
+    Label,
+    RadioList,
+    TextArea,
+    ValidationToolbar,
+)
+from typing import Callable
+from data.user import UserData
 
 
-def gallary(data: UserData, *args) -> Application:
+def gallery(data: UserData, *args) -> Application:
     """
     The function sets up a gallery user interface for the app.
     If the user history is empty, a message is displayed with options to create a note or exit.
@@ -202,7 +202,7 @@ def view(data: UserData, note_num: int, *args) -> Application:
 
     @ kb.add("b")
     def call_gallery(event) -> None:
-        event.app.exit(result=(gallary, None))
+        event.app.exit(result=(gallery, None))
 
     @ kb.add("x")
     def call_editor(event) -> None:
@@ -324,7 +324,7 @@ def deleter(data: UserData, note_num: int, calling_sub_app: Callable[..., Applic
         deleted_note = data.history.pop(note_num)
         data.notes.pop(deleted_note)
         if not data.history:
-            result = (gallary, None)
+            result = (gallery, None)
         else:
             result = (calling_sub_app, note_num if note_num == 0 else note_num-1)
         get_app().exit(result=result)
@@ -392,7 +392,7 @@ def factory(data: UserData, note_num: int, calling_sub_app: Callable[..., Applic
     def accept_handler(buffer: Buffer) -> None:
         note_title = buffer.text
 
-        if calling_sub_app == gallary:
+        if calling_sub_app == gallery:
             data.history.append(note_title)
             data.notes[note_title] = ''
             result = (editor, note_num)
@@ -409,7 +409,7 @@ def factory(data: UserData, note_num: int, calling_sub_app: Callable[..., Applic
     cancel_button = Button(text='Cancel', handler=cancel_handler)
 
     text_area = TextArea(
-        text='' if calling_sub_app == gallary else data.history[note_num],
+        text='' if calling_sub_app == gallery else data.history[note_num],
         multiline=False,
         focus_on_click=True,
         validator=FactoryValidator(),
