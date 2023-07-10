@@ -2,9 +2,6 @@ import pickle
 from typing import List, Dict
 
 
-FILENAME = 'data/userdata.pickle'
-
-
 class UserData:
     """
     The UserData class represents user-specific data, including the sequence of notes created and their contents.
@@ -19,23 +16,23 @@ class UserData:
         self.history: List[str] = []
         self.notes: Dict[str, str] = {}
 
-    def load_data(self) -> None:
+    def load_data(self, filepath: str) -> None:
         """
-        Loads data from a pickle file specified by FILENAME.
+        Loads data from a pickle file specified by filepath.
         If the file doesn't exist, the method silently does nothing.
         """
         try:
-            with open(FILENAME, 'rb') as file:
+            with open(filepath, 'rb') as file:
                 self.history = pickle.load(file)
                 self.notes = pickle.load(file)
         except FileNotFoundError:
             pass
 
-    def dump_data(self) -> None:
+    def dump_data(self, filepath: str) -> None:
         """
-        Dumps the history and notes data to a pickle file specified by FILENAME.
+        Dumps the history and notes data to a pickle file specified by filepath.
         If the file doesn't exist, it will be created.
         """
-        with open(FILENAME, 'wb') as my_test_file:
-            pickle.dump(self.history, my_test_file)
-            pickle.dump(self.notes, my_test_file)
+        with open(filepath, 'wb') as file:
+            pickle.dump(self.history, file)
+            pickle.dump(self.notes, file)
