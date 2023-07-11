@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Mas5ive <empty>"]
 readme = "README.md"
-packages = [{include = "my_notes"}]
+packages = [{include = "application"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -20,8 +20,12 @@ autopep8 = "^2.0.2"
 pytest = "^7.4.0"
 
 
-[tool.pytest.ini_options]
-pythonpath = ["my_notes"]
+# [tool.pytest.ini_options]
+# pythonpath = ["my_notes"]
+
+
+[tool.poetry.scripts]
+mynotes = "application.scripts.run:main"
 
 
 [build-system]

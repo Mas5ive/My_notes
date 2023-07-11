@@ -1,6 +1,10 @@
-from note_app import NoteApp
+from application.note_app import NoteApp
+
+
+def main():
+    app = NoteApp()
+    app.run()
 
 
 if __name__ == '__main__':
-    app = NoteApp()
-    app.run()
+    main()

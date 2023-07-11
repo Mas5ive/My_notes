@@ -1,7 +1,7 @@
 from prompt_toolkit.application import Application
 from typing import Callable
-from application.user import UserData
-from sub_apps import gallery
+from .user import UserData
+from .sub_apps import gallery
 
 
 class NoteApp:
