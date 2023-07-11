@@ -1,6 +1,6 @@
 from prompt_toolkit.application import Application
 from typing import Callable
-from data.user import UserData
+from application.user import UserData
 from sub_apps import gallery
 
 

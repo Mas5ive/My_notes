@@ -28,7 +28,7 @@ from prompt_toolkit.widgets import (
     ValidationToolbar,
 )
 from typing import Callable
-from data.user import UserData
+from application.user import UserData
 
 
 def gallery(data: UserData, *args) -> Application:
