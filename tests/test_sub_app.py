@@ -1,7 +1,7 @@
 from prompt_toolkit.input.posix_pipe import PosixPipeInput
 from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
-from my_notes.data.user import UserData
-from my_notes.sub_apps import (
+from application.user import UserData
+from application.sub_apps import (
     deleter,
     editor,
     factory,

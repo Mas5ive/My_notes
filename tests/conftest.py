@@ -2,7 +2,7 @@ import pytest
 from prompt_toolkit.application import create_app_session
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.output import DummyOutput
-from my_notes.data.user import UserData
+from application.user import UserData
 
 
 @pytest.fixture(autouse=True, scope="function")
