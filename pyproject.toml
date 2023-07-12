@@ -11,17 +11,17 @@ python = "^3.10"
 prompt-toolkit = "^3.0.38"
 
 
-[tool.poetry.group.dev.dependencies]
-flake8 = "^6.0.0"
-autopep8 = "^2.0.2"
-
-
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
 
 
-# [tool.pytest.ini_options]
-# pythonpath = ["my_notes"]
+[tool.poetry.group.dev]
+optional = true
+
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.0.0"
+autopep8 = "^2.0.2"
 
 
 [tool.poetry.scripts]
