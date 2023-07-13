@@ -8,14 +8,7 @@ class NoteApp:
     """
     The NoteApp class introduces a note-taking application that uses the State pattern.
     it`s responsible for managing the user data, file paths, and the flow of sub-applications.
-
-    Attributes:
-        _filedir: directory where user data is stored
-        _file_ext: data file extension
     """
-
-    _filedir = 'data/'
-    _file_ext = '.pickle'
 
     def __init__(self, filename: str = 'userdata') -> None:
         """
@@ -36,7 +29,7 @@ class NoteApp:
         """
         self._prev_sub_app: Callable[..., Application] | None = None
         self._cur_sub_app: Callable[..., Application] | None = gallery
-        self.user_data = UserData(self._filedir + filename + self._file_ext)
+        self.user_data = UserData(filename)
 
     def run(self) -> None:
         """
