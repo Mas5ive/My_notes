@@ -21,7 +21,7 @@ class UserData:
     # create a directory with user data files
     os.makedirs(os.path.dirname(_filedir), exist_ok=True)
 
-    def __init__(self, filename: str) -> None:
+    def __init__(self, filename='userdata') -> None:
         """
         Loads data from the pickle file specified in the filename.
         If the file does not exist, the values are set by default

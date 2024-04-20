@@ -10,12 +10,9 @@ class NoteApp:
     it`s responsible for managing the user data, file paths, and the flow of sub-applications.
     """
 
-    def __init__(self, filename: str = 'userdata') -> None:
+    def __init__(self, user_data: UserData) -> None:
         """
         Setting the path to the file with user and application data states
-
-        Args:
-            filename: file name (specified without a path and without an extension)
 
         Instance attributes:
 
@@ -29,7 +26,7 @@ class NoteApp:
         """
         self._prev_sub_app: Callable[..., Application] | None = None
         self._cur_sub_app: Callable[..., Application] | None = gallery
-        self.user_data = UserData(filename)
+        self.user_data = user_data
 
     def run(self) -> None:
         """

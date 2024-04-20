@@ -1,8 +1,10 @@
 from application.note_app import NoteApp
+from application.user import UserData
 
 
 def main():
-    app = NoteApp()
+    user_data = UserData()
+    app = NoteApp(user_data)
     app.run()
 
 
