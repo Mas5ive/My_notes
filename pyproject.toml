@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "my-notes"
 version = "0.1.0"
-description = ""
+description = "A simple CLI app in Python3 for taking notes"
 authors = ["Mas5ive <empty>"]
 readme = "README.md"
 packages = [{include = "application"}]
